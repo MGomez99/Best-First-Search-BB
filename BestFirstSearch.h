@@ -8,9 +8,9 @@
 #include <sstream>
 using namespace std;
 
-/*Item struct to store all respective values for a given item i*/
+//"item" struct to store all respective values for a given item i*/
 typedef struct item {
-    int id; //item number before sorting
+    int id; //item number before sorting (essentially relates to order of items created)
     int profit; //profit attributed to item
     int weight; //weight attributed to item
     float ppw; //price-per-unit-weight ratio
@@ -29,19 +29,21 @@ typedef struct item {
         weight = -1;
         s= "";
     }
-    //for sorting by profit-per-unit-weight
+    //overload < operator for sorting by profit-per-unit-weight
     bool operator<(const item& r) const {
         return ppw > r.ppw;
     }
 } item;
-// Node struct for creating our tree
+// "Node"" struct for creating our tree
+// Each Node will be put in our priority queue
 typedef struct Node{
-    int totalItems;
-    int level;
-    int weight;
-    float bound;
-    int profit;
-    vector<item> included;
+    int totalItems; // total items added thus far
+    int level; // total items considered == level
+    int weight; // total weight 
+    float bound; // bound obtained from the fractional knapsack problem
+    int profit; // total profit
+    vector<item> included; // all items included
+    // constructors
     Node(int w, int p, int lvl, int total){
         weight = w;
         profit = p;
@@ -58,6 +60,9 @@ typedef struct Node{
         profit = -1;
         included = {};
     }
+    // copies items from previous vector to "included" vector
+    // used instead of copy constructor
+    // essentially will store all previous items of the parent node, then either add an item or not dependsing on if it's a "no" or "yes" child
     void copy_items(vector<item> v){
         vector<item> new_(v);
         included = new_;
@@ -95,7 +100,7 @@ float bound(Node n, int capacity, int max_items){
     return bound;
 }
 
-//for priority queue ordering
+//comparator for priority queue ordering
 struct cmpr{
     bool operator() (const Node& l, const Node& r) const{
         return l.bound <  r.bound;
@@ -103,6 +108,7 @@ struct cmpr{
 };
 
 // for reading in from file
+// assumes correct format
 void getInput(string filename, int& problemsize, int& weightcap, vector<item>& it){
     ifstream infile(filename);
     
@@ -124,6 +130,7 @@ void getInput(string filename, int& problemsize, int& weightcap, vector<item>& i
         }
         data.push_back(record);
     }
+    // parse input from file 
     problemsize = data[0][0];
     weightcap = data[0][1];
     int id_count = 1;

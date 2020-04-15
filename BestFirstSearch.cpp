@@ -22,28 +22,32 @@ int BFSBB(int capacity, int numitems){
         v = q.front();
         //cout<<"(LEVEL = "<<v.level <<")"<<"\t\tprofit = "<<v.profit <<" weight = "<<v.weight <<" bound = " << v.bound<< " items added = " << v.totalItems<< endl;
         q.erase(q.begin());
+
         visited_nodes++;
+        // case : solution can not expand any farther (no more items to consider)
         if (v.level == numitems){
-            //solution can not expand any farther (no more items to consider)
             visited_leafs++;
             make_heap(q.begin(), q.end(), cmpr()); // update priority queue
             continue;
 
         }
+        // case : solution not feasible
         else if (v.weight > capacity){
-            // solution not feasible
             visited_leafs++;
             make_heap(q.begin(), q.end(), cmpr()); // update priority queue
             continue;
 
         }
+        // case : node is promising
         else if(v.bound > maxprofit){
-            // expand v
+            // expand current node
+            // two choices
 
             // Choice 1: "yes" child (we add the next item)
             Node u(v.weight + items[v.level].weight, v.profit + items[v.level].profit , v.level + 1, v.totalItems + 1);
             u.copy_items(v.included); // keep track of solution by copying the parent's list of added items
-            u.included.push_back(items[v.level]); // add current item
+             // u adds current item being considered
+            u.included.push_back(items[v.level]);
             u.bound = bound(u, capacity, numitems); // calculate bound
             if((u.weight <= capacity) && (u.profit > maxprofit)){
                 maxprofit = u.profit;
@@ -51,23 +55,25 @@ int BFSBB(int capacity, int numitems){
                 solution_set = u.included; //current best solution
                 solution_size = u.totalItems;
             }
-            //if(u.bound > maxprofit){
-                q.push_back(u);
-            //}
+            
+            q.push_back(u);
+            
 
             // Choice 2: "no" child (we don't add the next item)
             Node w(v.weight, v.profit, v.level + 1, v.totalItems);
             w.copy_items(v.included); // keep track of solution by copying the parent's list of added items
-            // skip current item
+            // w skips adding current item being considered (unlike u)
             w.bound = bound(w, capacity, numitems); // calculate bound
-            //if(w.bound > maxprofit){
-                q.push_back(w);
-            //}
+            
+            q.push_back(w);
+            
         }
+        // case: node is not promising
         else{
-            //Node not expanded (not promising)
+            
             visited_leafs++;
         }
+        // make sure priority queue is updated
         make_heap(q.begin(), q.end(), cmpr()); // update priority queue
 
     }
